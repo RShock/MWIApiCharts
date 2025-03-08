@@ -4,19 +4,22 @@ import "./App.css";
 import { Line } from "@ant-design/plots";
 import { Select } from "antd";
 import _data from "./data/data.json";
+import chineseNames from "./data/chinese_names.json";
 
 let naviLang = navigator.language || navigator.userLanguage;
 let iszhCN = naviLang === "zh-CN";
 const uiText = { serch: "Search to Select" };
 if (iszhCN) {
-  uiText.serch = "仅支持英文搜索";
+  uiText.serch = "支持中英文搜索"; 
 }
 let curOptions = [];
 let i = 1;
 for (const key in _data) {
-  let option = { value: i, label: key };
+  let option = { 
+    value: key, // 保持原始英文值
+    label: `${chineseNames[key] || key} (${key})` // 显示中文+英文
+  };
   curOptions.push(option);
-  i++;
 }
 var dataUpdateTime = 1718557202.6439815;
 
@@ -112,6 +115,11 @@ const DemoLine = () => {
       // x: { labelFormatter: (d) => format(d, 'YYYY/M/D') },
       // y: { labelFormatter: "~s" },
     },
+    meta: {
+      name: {
+        formatter: (v) => chineseNames[v] || v
+      }
+    }
   };
   const graph = handled && handled.itemData ? <Line {...config} /> : "";
   return (
@@ -125,9 +133,12 @@ const DemoLine = () => {
         }}
         placeholder={uiText.serch}
         optionFilterProp="children"
-        filterOption={(input, option) =>
-          (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-        }
+        filterOption={(input, option) => {
+          const enName = key.toLowerCase();
+          const cnName = (chineseNames[key] || "").toLowerCase();
+          return enName.includes(input.toLowerCase()) || 
+                 cnName.includes(input.toLowerCase());
+        }}
         filterSort={(optionA, optionB) =>
           (optionA?.label ?? "")
             .toLowerCase()
